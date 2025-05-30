@@ -22,9 +22,6 @@ import jax
 jax.config.update("jax_enable_x64", True)
 import jax.lax
 import jax.numpy as jnp
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from solvers import LinearProblem, SNESProblem
