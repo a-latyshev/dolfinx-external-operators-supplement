@@ -2,10 +2,11 @@
 
 ## Links
 
-- isSupplementedBy *software* [ https://doi.org/10.5281/zenodo.10907417]( https://doi.org/10.5281/zenodo.10907417)
-- isSupplementTo *publication-article* [ https://doi.org/10.46298/jtcam.14449]( https://doi.org/10.46298/jtcam.14449)
+- isSupplementedBy *software* [https://doi.org/10.5281/zenodo.10907417](https://doi.org/10.5281/zenodo.10907417)
+- isSupplementTo *publication-article* [https://doi.org/10.46298/jtcam.14449](https://doi.org/10.46298/jtcam.14449)
 - isSupplementTo *publication-article* [https://hal.science/hal-04735022v2](https://hal.science/hal-04735022v2)
 - isSupplementedBy *software* [https://github.com/a-latyshev/dolfinx-external-operator/tree/v0.9.0](https://github.com/a-latyshev/dolfinx-external-operator/tree/v0.9.0)
+- isSupplementedBy *software* [https://doi.org/10.5281/zenodo.13908686](https://doi.org/10.5281/zenodo.13908686)
 
 ## Authors
 
@@ -68,20 +69,14 @@ In essence, this *Open Data* approach will allow **reproducibility** and an **ea
 Data structure and information
 ------------------------------
 
-*Authors are required to provide one **README.md** file per directory to help
- navigation through the data*
-
-**Here the authors are expected to provide a full description of the directories
-  hierarchy with a concise description. For instance it could be:**
-
 + Folder/files structure:
   + `README.md` - Describes the contents and structure of the supplementary materials.
   + `supplementary_materials` - Main folder containing supplementary material.
-    + `plots`
-      + `data`
+    + `plots` - Scripts and raw data to make plots shown in paper.
+      + `data` - Contains raw data used in plots.
         + `k_list.npy` - NumPy array with values of scaling parameter for the Taylor test. **Used in Figure 7.**
         + `plots_for_paper.py` - Python script generating all plots for the paper, including displacement curves, yield surface, Taylor test, strong scaling, and slope visualization.
-        + `results_mohr_coulomb_non_associative.npy` -  NumPy array with displacement and soil self-weight values for the Mohr-Coulomb problem (non-associative flow).  **Used in Figure 9.**
+        + `results_mohr_coulomb_non_associative.npy` -  NumPy array with displacement and soil self-weight values for the Mohr-Coulomb problem (non-associative flow). **Used in Figure 9.**
         + `results_mohr_coulomb.npy` - NumPy array with displacement and soil self-weight values for the Mohr-Coulomb problem (associative flow). **Used in Figure 9.**
         + `results_von_mises_pure_ufl.npy` - NumPy array with displacement and applied pressure values for the von Mises problem (pure UFL). **Used in Figure 4.**
         + `results_von_mises.npy` - NumPy array with displacement and applied pressure values for the von Mises problem (Numba/external operator). **Used in Figure 4.**
@@ -92,19 +87,18 @@ Data structure and information
         + `taylor_reminders_data.npy` - NumPy array with Taylor remainder norms for the Taylor test. **Used in Figure 7.**
         + `theta_returned.npy` - NumPy array with Lode angles restored after return-mapping for the Mohr-Coulomb yield surface. **Used in Figure 6.**
         + `theta_values.npy` - NumPy array with Lode angles for the standard Mohr-Coulomb yield surface (analytical). **Used in Figure 6.**
-        + `performance_data_200x200_n_{n}.pkl` - Python dictionaries containing timings breakdown including total time, matrix assembly, linear solver, vector assembly, constitutive model update and loading step and Newton iteration indexes. The data is stored via the `pickle` Python module for n MPI processes (n = 1, 2, 4, 8, 16, 32, 64). **Used in Figures 10 and 11 (Appendix A.1).**
+        + `performance_data_200x200_n_{n}.pkl` - Python dictionaries containing timings breakdown including total time, matrix assembly, linear solver, vector assembly, constitutive model update and loading step and Newton iteration indexes. The data is stored via the `pickle` Python module for n MPI processes (n = 1, 2, 4, 8, 16, 32, 64). Generated using `../scaling/demo_plasticity_mohr_coloumb_mpi.py`. **Used in Figures 10 and 11 (Appendix A.1).**
       + `docker/Dockerfile` - Dockerfile containing description of environment used to execute the strong scaling test. The built image (x86-64) is available on Zenodo.
       + `output/` - Empty directory for output of `demo_plasticity_mohr_coulomb_mpi.py`.
       + `plots_for_papers.py` - Python script that plots all of the figures from the paper from the data in `data/`.
       + `README.md` - Further instructions.
-    + `scaling/` - Folder containing data for the strong scaling performance test, for different MPI process counts **(Appendix A.1)**.
+    + `scaling/` - Folder containing scripts for the strong scaling performance test, for different MPI process counts **(Appendix A.1)**.
       + `demo_plasticity_mohr_coulomb_mpi.py` - Python script for the Mohr-Coulomb plasticity problem. Generates data for the strong scaling test **(Appendix A.1)**.
       + `docker/Dockerfile` - Dockerfile containing description of environment used to execute the strong scaling test. The built image (x86-64) is available on Zenodo.
       + `README.md` - Further instructions.
       + `solvers.py` - Additional methods used in `demo_plasticity_mohr_coulomb_mpi.py`.
       + `utilities.py` - Additional methods used in `demo_plasticity_mohr_coulomb_mpi.py`.
       + `output/` - Empty directory for output of `demo_plasticity_mohr_coulomb_mpi.py`.
-
 
 Paper Description
 -----------------
