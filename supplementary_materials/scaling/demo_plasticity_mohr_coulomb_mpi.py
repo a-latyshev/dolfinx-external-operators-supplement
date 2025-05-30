@@ -27,7 +27,6 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from mpltools import annotation  # for slope markers
 from solvers import LinearProblem, SNESProblem
 from utilities import find_cell_by_point
 

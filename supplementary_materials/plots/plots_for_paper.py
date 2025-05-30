@@ -225,7 +225,7 @@ def plot_strong_scaling():
     # raw data of the first ten loading steps of the Mohr-Coulomb problem
     # is stored in a dictionary and dumped via the pickle module.
     for j, n in enumerate(n_list):
-        data = f"scaling_data/performance_data_200x200_n_{n}.pkl"
+        data = f"../scaling/data/performance_data_200x200_n_{n}.pkl"
         with open(data, "rb") as f:
             performance_data = pickle.load(f)
         all_data[j] = performance_data
