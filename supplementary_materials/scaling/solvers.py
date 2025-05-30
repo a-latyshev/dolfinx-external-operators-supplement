@@ -1,16 +1,16 @@
-from typing import Callable, Optional
-
+from mpi4py import MPI
 from petsc4py import PETSc
 
+import dolfinx.fem.petsc  # noqa: F401
 import ufl
-from dolfinx import fem
-from dolfinx.fem.petsc import NonlinearProblem
+from dolfinx import fem, common
+from typing import List, Union, Dict, Optional, Callable, Tuple
 
+import pandas as pd
+import numpy as np
 
 class LinearProblem:
-    def __init__(
-        self, dR: ufl.Form, R: ufl.Form, u: fem.function.Function, bcs: list[fem.bcs.DirichletBC] | None = None
-    ):
+    def __init__(self, dR: ufl.Form, R: ufl.Form, u: fem.Function, bcs: list[fem.dirichletbc] | None = None):
         self.u = u
         self.bcs = bcs if bcs is not None else []
 
@@ -32,7 +32,6 @@ class LinearProblem:
         """Sets the solver parameters."""
         solver = PETSc.KSP().create(self.comm)
         solver.setType("preonly")
-        solver.getPC().setType("lu")
         pc = solver.getPC()
         pc.setType("lu")
         pc.setFactorSolverType("mumps")
@@ -44,9 +43,7 @@ class LinearProblem:
             b_local.set(0.0)
         fem.petsc.assemble_vector(self.b, self.b_form)
         self.b.ghostUpdate(addv=PETSc.InsertMode.ADD, mode=PETSc.ScatterMode.REVERSE)
-        fem.petsc.apply_lifting(self.b, [self.A_form], bcs=[self.bcs], x0=[self.u.x.petsc_vec], alpha=-1.0)
-        fem.petsc.set_bc(self.b, self.bcs, self.u.x.petsc_vec, -1.0)
-        self.b.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
+        fem.set_bc(self.b, self.bcs)
 
     def assemble_matrix(self) -> None:
         self.A.zeroEntries()
@@ -73,39 +70,6 @@ class LinearProblem:
         self.A.destroy()
         self.b.destroy()
 
-
-class NewtonProblem(NonlinearProblem):
-    """Problem for the DOLFINx NewtonSolver with an external callback."""
-
-    def __init__(
-        self,
-        F: ufl.form.Form,
-        u: fem.function.Function,
-        bcs: list[fem.bcs.DirichletBC] = [],
-        J: ufl.form.Form = None,
-        form_compiler_options: Optional[dict] = None,
-        jit_options: Optional[dict] = None,
-        external_callback: Optional[Callable] = None,
-    ):
-        super().__init__(F, u, bcs, J, form_compiler_options, jit_options)
-
-        self.external_callback = external_callback
-
-    def form(self, x: PETSc.Vec) -> None:
-        """This function is called before the residual or Jacobian is
-        computed. This is usually used to update ghost values, but here
-        we also use it to evaluate the external operators.
-
-        Args:
-           x: The vector containing the latest solution
-        """
-        # The following line is from the standard NonlinearProblem class
-        x.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
-
-        # The external operators are evaluated here
-        self.external_callback()
-
-
 class SNESProblem:
     """Solves a nonlinear problem via PETSc.SNES.
     F(u) = 0
@@ -114,16 +78,15 @@ class SNESProblem:
     A = assemble(J)
     Ax = b
     """
-
     def __init__(
         self,
-        u: fem.function.Function,
-        F: ufl.form.Form,
-        J: ufl.form.Form,
-        bcs: list[fem.bcs.DirichletBC] = [],
-        petsc_options: Optional[dict] = {},
-        prefix: Optional[str] = None,
-        external_callback: Optional[Callable] = None,
+        u: fem.Function,
+        F: ufl.Form,
+        J: ufl.Form,
+        bcs=[],
+        petsc_options={},
+        prefix=None,
+        system_update: Optional[Callable] = None,
     ):
         self.u = u
         V = self.u.function_space
@@ -139,13 +102,24 @@ class SNESProblem:
 
         # Give PETSc solver options a unique prefix
         if prefix is None:
-            prefix = f"snes_{str(id(self))[0:4]}"
+            prefix = "snes_{}".format(str(id(self))[0:4])
 
         self.prefix = prefix
         self.petsc_options = petsc_options
-        self.external_callback = external_callback
+        self.system_update = system_update
 
         self.solver = self.solver_setup()
+
+        self.local_monitor = {"matrix_assembling": 0.0, "vector_assembling": 0.0, "constitutive_model_update": 0.0}
+        self.performance_monitor = pd.DataFrame({
+            # "loading_step": np.array([], dtype=np.int64),
+            "Newton_iterations": np.array([], dtype=np.int64),
+            "matrix_assembling": np.array([], dtype=np.float64),
+            "vector_assembling": np.array([], dtype=np.float64),
+            "nonlinear_solver": np.array([], dtype=np.float64),
+            "constitutive_model_update": np.array([], dtype=np.float64),
+        })
+        self.timer = common.Timer("SNES")
 
     def set_petsc_options(self):
         # Set PETSc options
@@ -167,13 +141,8 @@ class SNESProblem:
 
         snes.setFunction(self.F, self.b)
         snes.setJacobian(self.J, self.A)
-        # snes.setUpdate(self.update)
 
         return snes
-
-    def update(self, snes: PETSc.SNES, iter: int) -> None:
-        """Call external function at each iteration."""
-        self.external_callback()
 
     def F(self, snes: PETSc.SNES, x: PETSc.Vec, b: PETSc.Vec) -> None:
         """Assemble the residual F into the vector b.
@@ -188,8 +157,14 @@ class SNESProblem:
         x.copy(self.u.x.petsc_vec)
         self.u.x.scatter_forward()
 
-        self.external_callback()
+        #TODO: SNES makes the iteration #0, where it calculates the b norm.
+        #`system_update()` can be omitted in that case
+        self.timer.start()
+        self.system_update()
+        self.timer.stop()
+        self.local_monitor["constitutive_model_update"] += self.comm.allreduce(self.timer.elapsed()[0], op=MPI.SUM)
 
+        self.timer.start()
         with b.localForm() as b_local:
             b_local.set(0.0)
         fem.petsc.assemble_vector(b, self.F_form)
@@ -197,6 +172,8 @@ class SNESProblem:
         fem.petsc.apply_lifting(b, [self.J_form], [self.bcs], [x], -1.0)
         b.ghostUpdate(addv=PETSc.InsertMode.ADD, mode=PETSc.ScatterMode.REVERSE)
         fem.petsc.set_bc(b, self.bcs, x, -1.0)
+        self.timer.stop()
+        self.local_monitor["vector_assembling"] += self.comm.allreduce(self.timer.elapsed()[0], op=MPI.SUM)
 
     def J(self, snes, x: PETSc.Vec, A: PETSc.Mat, P: PETSc.Mat) -> None:
         """Assemble the Jacobian matrix.
@@ -206,15 +183,26 @@ class SNESProblem:
         x: Vector containing the latest solution.
         A: Matrix to assemble the Jacobian into.
         """
+        self.timer.start()
         A.zeroEntries()
         fem.petsc.assemble_matrix(A, self.J_form, self.bcs)
         A.assemble()
+        self.timer.stop()
+        self.local_monitor["matrix_assembling"] += self.comm.allreduce(self.timer.elapsed()[0], op=MPI.SUM)
 
-    def solve(
-        self,
-    ) -> tuple[int, int]:
+    def solve(self,) -> Tuple[int, int]:
+        # self.local_monitor["loading_step"] = loading_step
+        self.local_monitor["vector_assembling"] = 0.0
+        self.local_monitor["matrix_assembling"] = 0.0
+        self.local_monitor["constitutive_model_update"] = 0.0
+        timer = common.Timer("nonlinear_solver")
+        self.timer.start()
         self.solver.solve(None, self.u.x.petsc_vec)
+        timer.stop()
+        self.local_monitor["nonlinear_solver"] = self.comm.allreduce(self.timer.elapsed()[0], op=MPI.SUM)
+        self.local_monitor["Newton_iterations"] = self.solver.getIterationNumber()
         self.u.x.scatter_forward()
+        self.performance_monitor.loc[len(self.performance_monitor.index)] = self.local_monitor
         return (self.solver.getIterationNumber(), self.solver.getConvergedReason())
 
     def __del__(self):
