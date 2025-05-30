@@ -6,7 +6,7 @@
 - isSupplementTo *publication-article* [https://doi.org/10.46298/jtcam.14449](https://doi.org/10.46298/jtcam.14449)
 - isSupplementTo *publication-article* [https://hal.science/hal-04735022v2](https://hal.science/hal-04735022v2)
 - isSupplementedBy *software* [https://github.com/a-latyshev/dolfinx-external-operator/tree/v0.9.0](https://github.com/a-latyshev/dolfinx-external-operator/tree/v0.9.0)
-- isSupplementedBy *software* [https://doi.org/10.5281/zenodo.13908686](https://doi.org/10.5281/zenodo.13908686)
+- TODO v4: isSupplementedBy *software* [https://doi.org/10.5281/zenodo.13908686](https://doi.org/10.5281/zenodo.13908686)
 
 ## Authors
 
