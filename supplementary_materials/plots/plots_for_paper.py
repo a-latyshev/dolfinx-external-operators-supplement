@@ -27,8 +27,8 @@ def plot_von_mises_displacements_curve():
     Figure 4 in the paper.
     """
     # two-rows arrays with the displacements in the first row and the pressures in the second row
-    results = np.load("results_von_mises.npy")
-    results_pure_ufl = np.load("results_von_mises_pure_ufl.npy")
+    results = np.load("data/results_von_mises.npy")
+    results_pure_ufl = np.load("data/results_von_mises_pure_ufl.npy")
 
     fig, ax = plt.subplots(figsize=(4, 3))
 
@@ -39,7 +39,7 @@ def plot_von_mises_displacements_curve():
     ax.grid()
     ax.legend()
     fig.tight_layout()
-    fig.savefig("../img/von_mises_results.pdf")
+    fig.savefig("output/von_mises_results.pdf")
 
 def plot_mohr_coulomb_yield_surface():
     """Plots tracing of the Mohr-Coulomb yield surface with apex smoothing.
@@ -51,9 +51,9 @@ def plot_mohr_coulomb_yield_surface():
     # Mohr-Coulomb yield surface with apex smoothing
 
     # Lode angles restored after the return mapping
-    theta_returned = np.load("theta_returned.npy") 
+    theta_returned = np.load("data/theta_returned.npy") 
     # radial coordinate restored after the return mapping
-    rho_returned = np.load("rho_returned.npy")
+    rho_returned = np.load("data/rho_returned.npy")
 
     N_loads = len(theta_returned)
     colormap = cm.plasma
@@ -77,10 +77,10 @@ def plot_mohr_coulomb_yield_surface():
     # Standard Mohr-Coulomb yield surface (without smoothing)
 
     # Lode angles uniformly generated from -pi/6 to pi/6
-    theta_values = np.load("theta_values.npy")
+    theta_values = np.load("data/theta_values.npy")
     # radial coordinate for the standard Mohr-Coulomb yield surface computed
     # analytically 
-    rho_standard_MC = np.load("rho_standard_MC.npy")
+    rho_standard_MC = np.load("data/rho_standard_MC.npy")
 
     theta_standard_MC_total = np.array([])
     rho_standard_MC_total = np.array([])
@@ -91,14 +91,14 @@ def plot_mohr_coulomb_yield_surface():
     ax.plot(theta_standard_MC_total, rho_standard_MC_total, "-", color="black")
     ax.set_yticklabels([])
 
-    fig.savefig("../img/MC_yield_surface.pdf", bbox_inches='tight')
+    fig.savefig("output/MC_yield_surface.pdf", bbox_inches='tight')
 
 def plot_taylor_test():
     """Plots curves establishing the convergence of the Taylor remainders.
     Figure 7 in the paper.
     """
-    k_list = np.load("k_list.npy")
-    reminders_data = np.load("taylor_reminders_data.npy")
+    k_list = np.load("data/k_list.npy")
+    reminders_data = np.load("data/taylor_reminders_data.npy")
 
     # Each array contains the values of dual norms of the Taylor remainders.
     zero_order_remainder_elastic = reminders_data[0]
@@ -126,7 +126,7 @@ def plot_taylor_test():
         axs[i].grid()
     fig.tight_layout()
     
-    fig.savefig("../img/taylor_test.pdf")
+    fig.savefig("output/taylor_test.pdf")
 
 def plot_mohr_coulomb_displacements_curve():
     """Plots the soil self-weight as a function of the displacement of the
@@ -135,8 +135,8 @@ def plot_mohr_coulomb_displacements_curve():
     """
     # two-rows array with the displacements in the first row and the soil
     # self-weight in the second row
-    results = np.load("results_mohr_coulomb.npy")
-    results_supp = np.load("results_mohr_coulomb_non_associative.npy")
+    results = np.load("data/results_mohr_coulomb.npy")
+    results_supp = np.load("data/results_mohr_coulomb_non_associative.npy")
 
     fig, ax = plt.subplots(figsize=(4, 3))
 
@@ -158,16 +158,16 @@ def plot_mohr_coulomb_displacements_curve():
     ax.legend()
 
     fig.tight_layout()
-    fig.savefig("../img/mohr_coulomb_results.pdf")
+    fig.savefig("output/mohr_coulomb_results.pdf")
 
 def plot_slope():
     """Plots the deformed slope with the magnitude of displacements.
     Figure 9 in the paper.
     """
     # slope image generated via pyvista
-    img = np.load("slope.npy")
+    img = np.load("data/slope.npy")
     # values of displacements in mesh nodes
-    u = np.load("slope_displacement.npy")
+    u = np.load("data/slope_displacement.npy")
 
     fig, ax = plt.subplots(figsize=(4, 4))
 
@@ -189,7 +189,7 @@ def plot_slope():
     ticks = cbar.get_ticks().tolist()[:-1] 
     ticks.append(u_mag.max())
     cbar.set_ticks(ticks)
-    fig.savefig("../img/slope.pdf", dpi=600, bbox_inches="tight")
+    fig.savefig("output/slope.pdf", dpi=600, bbox_inches="tight")
 
 def plot_strong_scaling():
     """Plots the strong scaling results for the Mohr-Coulomb problem.
@@ -225,7 +225,7 @@ def plot_strong_scaling():
     # raw data of the first ten loading steps of the Mohr-Coulomb problem
     # is stored in a dictionary and dumped via the pickle module.
     for j, n in enumerate(n_list):
-        data = f"scaling_data/performance_data_200x200_n_{n}.pkl"
+        data = f"data/performance_data_200x200_n_{n}.pkl"
         with open(data, "rb") as f:
             performance_data = pickle.load(f)
         all_data[j] = performance_data
@@ -253,7 +253,7 @@ def plot_strong_scaling():
     ax.grid()
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     fig.tight_layout()
-    fig.savefig("../img/strong_scaling_line.pdf")
+    fig.savefig("output/strong_scaling_line.pdf")
 
     # make the bar plot for the last loading step
     extracted_rows = []
@@ -272,7 +272,7 @@ def plot_strong_scaling():
     ax.tick_params(axis='x', rotation=0)
 
     fig.tight_layout()
-    fig.savefig("../img/strong_scaling_bar.pdf")
+    fig.savefig("output/strong_scaling_bar.pdf")
 
 plot_von_mises_displacements_curve()
 plot_mohr_coulomb_yield_surface()
