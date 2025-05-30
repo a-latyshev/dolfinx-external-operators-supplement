@@ -7,10 +7,8 @@
 # (preprint: hal.science/hal-04735022v1). The difference is routed in
 # implementation of `C_tang`, where the implicit function theorem is applied
 # instead of passing AD through unrolled Newton loop. The script is compatible
-# with the JAX version 0.5.0, the image ghcr.io/fenics/dolfinx/dolfinx:nightly
-# ID 28eb839aff48 and git hash ecfa039132622b8d6539ef21288cdba7f41dcf76 of the
-# repository https://github.com/a-latyshev/dolfinx-external-operator. 
-# 
+# with the software environent specified in the Dockerfile.
+#
 # Typical run: `mpirun -n 2 python demo_plasticity_mohr_coulomb_mpi.py --N 200`
 
 import os, sys 
@@ -495,18 +493,7 @@ if MPI.COMM_WORLD.rank == 0:
 
 n = MPI.COMM_WORLD.Get_size()
 
-if len(points_on_process) > 0:
-    l_lim = 6.69
-    gamma_lim = l_lim / H * c
-    plt.plot(results[:-3, 0], results[:-3, 1], "o-", label=r"$\gamma$")
-    plt.axhline(y=gamma_lim, color="r", linestyle="--", label=r"$\gamma_\text{lim}$")
-    plt.xlabel(r"Displacement of the slope $u_x$ at $(0, H)$ [mm]")
-    plt.ylabel(r"Soil self-weight $\gamma$ [MPa/mm$^3$]")
-    plt.grid()
-    plt.legend()
-    plt.savefig(f"mc_mpi_{N}x{N}_n_{n}.png")
-
 import pickle
 performance_data = {"total_time": total_time, "performance_monitor": performance_monitor}
-with open(f"performance_data_{N}x{N}_n_{n}.pkl", "wb") as f:
-        pickle.dump(performance_data, f)
+with open(f"output/performance_data_{N}x{N}_n_{n}.pkl", "wb") as f:
+    pickle.dump(performance_data, f)
