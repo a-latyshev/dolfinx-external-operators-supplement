@@ -19,6 +19,7 @@
 ## License
 
 - Creative Commons Attribution 4.0
+- LGPL v3.0 or later
 
 Contributions
 -------------
