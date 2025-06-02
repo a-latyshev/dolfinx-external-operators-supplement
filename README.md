@@ -87,17 +87,19 @@ Data structure and information
         + `taylor_reminders_data.npy` - NumPy array with Taylor remainder norms for the Taylor test. **Used in Figure 4.**
         + `theta_returned.npy` - NumPy array with Lode angles restored after return-mapping for the Mohr-Coulomb yield surface. **Used in Figure 3.**
         + `theta_values.npy` - NumPy array with Lode angles for the standard Mohr-Coulomb yield surface (analytical). **Used in Figure 3.**
-      + `docker/Dockerfile` - Dockerfile containing description of environment used to execute the strong scaling test. The built image (x86-64) is available on Zenodo.
+      + `docker/Dockerfile` - Dockerfile containing description of environment
+        used to generate plots from the paper. The built image (x86-64) is
+        available on Zenodo.
       + `output/` - Empty directory for output of `demo_plasticity_mohr_coulomb_mpi.py`.
       + `plots_for_papers.py` - Python script that plots all of the figures from the paper from the data in `data/`.
       + `README.md` - Further instructions.
     + `scaling/` - Folder containing scripts for the strong scaling performance test, for different MPI process counts **(Appendix A.1)**.
-      + `demo_plasticity_mohr_coulomb_mpi.py` - Python script for the Mohr-Coulomb plasticity problem. Generates data for the strong scaling test **(Appendix A.1)**.
       + `docker/Dockerfile` - Dockerfile containing description of environment used to execute the strong scaling test. The built image (x86-64) is available on Zenodo.
+      + `output/` - Empty directory for output of `demo_plasticity_mohr_coulomb_mpi.py`.
+      + `demo_plasticity_mohr_coulomb_mpi.py` - Python script for the Mohr-Coulomb plasticity problem. Generates data for the strong scaling test **(Appendix A.1)**.
       + `README.md` - Further instructions.
       + `solvers.py` - Additional methods used in `demo_plasticity_mohr_coulomb_mpi.py`.
       + `utilities.py` - Additional methods used in `demo_plasticity_mohr_coulomb_mpi.py`.
-      + `output/` - Empty directory for output of `demo_plasticity_mohr_coulomb_mpi.py`.
 
 Paper Description
 -----------------
